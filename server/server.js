@@ -2,16 +2,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import chatRoutes from "./routes/chat.js";
 import connectDB from "./config/db.js";
+import chatRoutes from "./routes/chat.js";
 import conversationRoutes from "./routes/conversations.js";
+
 dotenv.config();
 
 const app = express();
 
 app.use(cors({
-  origins:[ "http://localhost:5173",   "http://10.159.142.122:5173"]
-  
+  origin: process.env.FRONTEND_URL || "http://localhost:5173"
 }));
 
 app.use(express.json());
@@ -26,14 +26,25 @@ app.get("/", (req, res) => {
 app.use("/api/chat", chatRoutes);
 app.use("/api/conversations", conversationRoutes);
 
-const PORT = process.env.PORT || 5000;
+// Connect to MongoDB once per server instance
+let connectionPromise;
 
-const startServer = async () => {
-  await connectDB();
+app.use(async (req, res, next) => {
+  next();
+});
 
-  app.listen(PORT, () => {
-    console.log(`Askzeee server running on port ${PORT}`);
+// Initialize database connection
+connectionPromise = connectDB();
+
+export default app;
+
+// Run locally, not on Vercel
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+
+  connectionPromise.then(() => {
+    app.listen(PORT, () => {
+      console.log(`Askzeee server running on port ${PORT}`);
+    });
   });
-};
-
-startServer();
+}
