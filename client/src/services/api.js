@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // Generate or retrieve anonymous user ID
 let userId = localStorage.getItem("askzeee_user_id");
